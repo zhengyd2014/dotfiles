@@ -1,0 +1,1 @@
+git config --global alias.lg "log --pretty='%Cred%h%creset | %C(yellow)%d%Creset %s %Cgreen(%cr)%Creset %C(cyan)[%an]%Creset' --graph"
