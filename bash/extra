@@ -1,1 +1,14 @@
 alias ag="alias | grep"
+
+
+# for go
+alias or="go run "
+alias ot="go test "
+alias ob="go build "
+alias oi="go install "
+alias ov="go version "
+alias od="cd $GOPATH "
+
+
+#for find
+alias findfile="find . | grep "
