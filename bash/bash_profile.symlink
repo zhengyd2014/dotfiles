@@ -1,6 +1,6 @@
 
 
-for file in ~/dotfiles/bash/{env,aliases,functions,extra}; do
+for file in ~/dotfiles/bash/{env,functions,aliases,extra}; do
 	[ -r "$file" ] && [ -f "$file" ] && source "$file";
 done;
 unset file;

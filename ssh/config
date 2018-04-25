@@ -1,0 +1,5 @@
+Host devenv
+	HostName 54.152.45.46
+	User ec2-user
+	Port 22
+	IdentityFile ~/dotfiles/ssh/devenv-key.pem

@@ -14,7 +14,9 @@ alias -- -="cd -"
 alias d="cd ~/Dropbox"
 alias dl="cd ~/Downloads"
 alias dt="cd ~/Desktop"
+alias do="cd ~/dotfiles"
 alias p="cd ~/Projects"
+alias w="cd ~/workspace"
 alias g="git"
 
 

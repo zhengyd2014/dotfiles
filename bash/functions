@@ -88,3 +88,9 @@ function o() {
 function tre() {
 	tree -aC -I '.git|node_modules|bower_components' --dirsfirst "$@" | less -FRNX;
 }
+
+# leetcode to get a file in golang
+function lcg() {
+	lc="docker run -it --rm -v /Users/fred/workspace/leetcode-cli/go:/root skygragon/leetcode-cli show $@ -gx -l golang"
+	eval $lc
+}
