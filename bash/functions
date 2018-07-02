@@ -7,6 +7,25 @@ function mkd() {
 }
 
 
+# for onebox
+alias onebox="ssh -t fzheng-onebox.dev.lyft.net onebox_env"
+function lcontainer() {
+	ssh "${1}-legacy-fzheng-onebox.dev.lyft.net"
+}
+function lsync() {
+	src="/Users/fzheng/go/src/github.com/lyft"
+	cd ${src}/${1}
+	../hacktools/sync-to-onebox-v3.sh ${1}-legacy-fzheng
+}
+function ltail() {
+	ssh "${1}-legacy-fzheng-onebox.dev.lyft.net" "tail -f /var/log/${1}-web/current"
+}
+function lrestart() {
+	ssh "${1}-legacy-fzheng-onebox.dev.lyft.net" "cd /go/src/github.com/lyft/${1} && GOPATH=/go go build  && sudo cp ${1} /usr/local/bin/${1} && pkill -9 ${1}"
+}
+
+
+
 # Start an HTTP server from a directory, optionally specifying the port
 function server() {
 	local port="${1:-8000}";
@@ -93,4 +112,12 @@ function tre() {
 function lcg() {
 	lc="docker run -it --rm -v /Users/fred/workspace/leetcode-cli/go:/root skygragon/leetcode-cli show $@ -gx -l golang"
 	eval $lc
+}
+
+
+
+# lyft to clone a repository
+function lclone() {
+	clone="git clone git@github.com:lyft/$@"
+	eval $clone
 }
