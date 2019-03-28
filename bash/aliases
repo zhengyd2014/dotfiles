@@ -17,6 +17,7 @@ alias dt="cd ~/Desktop"
 alias do="cd ~/dotfiles"
 alias p="cd ~/Projects"
 alias w="cd ~/workspace"
+alias lyft="cd $GOPATH/src/github.com/lyft"
 alias g="git"
 
 

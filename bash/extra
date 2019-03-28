@@ -1,5 +1,6 @@
-alias ag="alias | grep"
-
+# misc
+alias ag="alias | grep "
+alias hg="history | grep "
 
 # for go
 alias or="go run "
@@ -9,10 +10,10 @@ alias oi="go install "
 alias ov="go version "
 alias od="cd $GOPATH "
 
-
 #for find
 alias findfile="find . | grep "
 
+# for leetcode
 alias lc='docker run -it --rm -v /Users/fred/workspace/leetcode-cli/go:/root skygragon/leetcode-cli'
 alias cdlc='cd ~/workspace/leetcode-cli/go'
 alias lct='lc test '
