@@ -18,7 +18,10 @@ alias do="cd ~/dotfiles"
 alias p="cd ~/Projects"
 alias w="cd ~/workspace"
 alias lyft="cd $GOPATH/src/github.com/lyft"
+
 alias g="git"
+alias gmaster='git checkout master; git pull'
+alias gbranch='git checkout -b'
 
 
 # Detect which `ls` flavor is in use

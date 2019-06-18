@@ -121,3 +121,22 @@ function lclone() {
 	clone="git clone git@github.com:lyft/$@"
 	eval $clone
 }
+
+# git merge change from master
+function gitmerge () {
+	old_branch=$(git rev-parse --abbrev-ref HEAD)
+	git checkout master
+	git pull
+	git checkout ${old_branch}
+	git merge master
+}
+
+function gpush() {
+	current_branch=$(git rev-parse --abbrev-ref HEAD)
+	git push origin ${current_branch}
+}
+
+function rom() {
+	rom_command="ssh -t readonlydb.ln 'export LC_ALL=C; rom $@'"
+	eval ${rom_command}
+}

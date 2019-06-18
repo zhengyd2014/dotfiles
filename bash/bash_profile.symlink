@@ -3,4 +3,6 @@
 for file in ~/dotfiles/bash/{env,functions,aliases,extra}; do
 	[ -r "$file" ] && [ -f "$file" ] && source "$file";
 done;
-unset file;source '/Users/fzheng/Projects/blessclient/lyftprofile' # bless ssh alias
+source '/Users/fzheng/go/src/github.com/lyft/awsaccess/awsaccess2.sh' # awsaccess
+source '/Users/fzheng/go/src/github.com/lyft/awsaccess/oktaawsaccess.sh' # oktaawsaccess
+export PS1="\$(ps1_mfa_context)$PS1" # awsaccess
