@@ -140,3 +140,18 @@ function rom() {
 	rom_command="ssh -t readonlydb.ln 'export LC_ALL=C; rom $@'"
 	eval ${rom_command}
 }
+
+function mongoids() {
+	list_mongo_ids_command="grep mlab_cluster_id ~/go/src/github.com/lyft/runtime/data/mongodb/* | sed -e 's^.*/^^' -e 's/.json://' -e 's/,//' | awk '{print \$3 \" \\t  \" \$1}'"
+	eval ${list_mongo_ids_command}
+}
+
+
+function cdcssh() {
+	pod=${1}
+	lyftkube exec -ti ${pod} -- bash
+}
+function kfkssh() {
+	pod=${1}
+	lyftkube exec -ti ${pod} -- bash
+}

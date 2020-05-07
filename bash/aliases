@@ -23,6 +23,17 @@ alias g="git"
 alias gmaster='git checkout master; git pull'
 alias gbranch='git checkout -b'
 
+alias tailer='control enter mongodbtailer.legacy'
+alias cdc='control enter cdcadapters.legacy'
+alias streams='control enter mongostreams.legacy'
+alias kafka='control enter dynamostreams2kafka.legacy'
+
+
+# for cdcadapters debug
+alias awssudo='lyftkube auth okta'
+alias cdcpod='lyftkube get pods -p cdcadapters -w -e'
+alias kfkpod='lyftkube get pods -p dynamostreams2kafka -w -e'
+
 
 # Detect which `ls` flavor is in use
 if ls --color > /dev/null 2>&1; then # GNU `ls`

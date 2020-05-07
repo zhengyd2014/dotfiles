@@ -14,7 +14,18 @@ alias od="cd $GOPATH "
 alias findfile="find . | grep "
 
 # for leetcode
-alias lc='docker run -it --rm -v /Users/fred/workspace/leetcode-cli/go:/root skygragon/leetcode-cli'
-alias cdlc='cd ~/workspace/leetcode-cli/go'
-alias lct='lc test '
-alias lcs='lc submit '
+#alias lc='docker run -it --rm -v /Users/fzheng/go/src/github.com/zhengyd2014/leetcode/root skygragon/leetcode-cli'
+alias lc='leetcode'
+
+alias cdlc='cd ~/workspace/coding'
+alias lctest='lc test'
+alias lcsubmit='lc submit'
+alias lctag='lc list -t'
+
+function lcget() {
+	leetcode show ${1} -gxe
+}
+
+function lcsolution() {
+	leetcode show ${1} --solution
+}
