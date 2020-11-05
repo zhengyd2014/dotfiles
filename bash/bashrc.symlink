@@ -2,3 +2,9 @@ source '/Users/fzheng/go/src/github.com/lyft/awsaccess/awsaccess2.sh' # awsacces
 source '/Users/fzheng/go/src/github.com/lyft/awsaccess/oktaawsaccess.sh' # oktaawsaccess
 export PS1="\$(ps1_mfa_context)$PS1" # awsaccess
 PATH=$PATH:/Users/fzheng/.lyftkube-bin
+
+# Add support for Go modules and Lyft's Athens module proxy/store
+# These variables were added by 'hacktools/set_go_env_vars.sh'
+export GOPROXY='https://athens.ingress.infra.us-east-1.k8s.lyft.net'
+export GONOSUMDB='github.com/lyft/*,github.lyft.net/*'
+export GO111MODULE='auto'

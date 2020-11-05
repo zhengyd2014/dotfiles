@@ -32,6 +32,7 @@ alias kafka='control enter dynamostreams2kafka.legacy'
 # for cdcadapters debug
 alias awssudo='lyftkube auth okta'
 alias cdcpod='lyftkube get pods -p cdcadapters -w -e'
+alias connectorpod='lyftkube get pods -p dynamostreamskafkaconnector -w -e'
 alias kfkpod='lyftkube get pods -p dynamostreams2kafka -w -e'
 
 
