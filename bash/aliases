@@ -15,24 +15,21 @@ alias d="cd ~/Dropbox"
 alias dl="cd ~/Downloads"
 alias dt="cd ~/Desktop"
 alias do="cd ~/dotfiles"
-alias p="cd ~/Projects"
-alias w="cd ~/workspace"
 alias lyft="cd $GOPATH/src/github.com/lyft"
 
 alias g="git"
 alias gmaster='git checkout master; git pull'
+alias gmain='git checkout master; git pull'
 alias gbranch='git checkout -b'
 
-alias tailer='control enter mongodbtailer.legacy'
 alias cdc='control enter cdcadapters.legacy'
-alias streams='control enter mongostreams.legacy'
 alias kafka='control enter dynamostreams2kafka.legacy'
 
 
 # for cdcadapters debug
 alias awssudo='lyftkube auth okta'
 alias cdcpod='lyftkube get pods -p cdcadapters -w -e'
-alias connectorpod='lyftkube get pods -p dynamostreamskafkaconnector -w -e'
+alias connectorpod='lyftkube get pods -p cdcconnector -w -e'
 alias kfkpod='lyftkube get pods -p dynamostreams2kafka -w -e'
 
 
