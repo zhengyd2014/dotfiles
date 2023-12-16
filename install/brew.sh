@@ -15,6 +15,6 @@ brew install bash  # bash 4
 
 
 # development tools
-brew install git
+#brew install git
 brew install tmux
 brew install zsh

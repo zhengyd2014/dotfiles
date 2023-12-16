@@ -6,7 +6,6 @@ alias ..="cd .."
 alias ...="cd ../.."
 alias ....="cd ../../.."
 alias .....="cd ../../../.."
-alias ~="cd ~" # `cd` is probably faster to type though
 alias -- -="cd -"
 
 
@@ -14,23 +13,15 @@ alias -- -="cd -"
 alias d="cd ~/Dropbox"
 alias dl="cd ~/Downloads"
 alias dt="cd ~/Desktop"
-alias do="cd ~/dotfiles"
-alias lyft="cd $GOPATH/src/github.com/lyft"
+#alias do="cd ~/dotfiles"
 
 alias g="git"
 alias gmaster='git checkout master; git pull'
-alias gmain='git checkout master; git pull'
 alias gbranch='git checkout -b'
 
-alias cdc='control enter cdcadapters.legacy'
-alias kafka='control enter dynamostreams2kafka.legacy'
-
-
-# for cdcadapters debug
-alias awssudo='lyftkube auth okta'
-alias cdcpod='lyftkube get pods -p cdcadapters -w -e'
-alias connectorpod='lyftkube get pods -p cdcconnector -w -e'
-alias kfkpod='lyftkube get pods -p dynamostreams2kafka -w -e'
+alias fg='find . | grep'
+alias ag='alias | grep'
+alias hg='history | grep'
 
 
 # Detect which `ls` flavor is in use

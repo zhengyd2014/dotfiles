@@ -2,7 +2,7 @@
 
 echo "Installing dotfiles"
 
-source install/link.sh
+#source install/link.sh
 
 if [ "$(uname)" == "Darwin" ]; then
     echo "Running on OSX"
@@ -11,7 +11,7 @@ if [ "$(uname)" == "Darwin" ]; then
     source install/brew.sh
 
     echo "Updating OSX settings"
-    source macos/settings.sh
+#    source macos/settings.sh
 
 fi
 

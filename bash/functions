@@ -7,25 +7,6 @@ function mkd() {
 }
 
 
-# for onebox
-alias onebox="ssh -t fzheng-onebox.dev.lyft.net onebox_env"
-function lcontainer() {
-	ssh "${1}-legacy-fzheng-onebox.dev.lyft.net"
-}
-function lsync() {
-	src="/Users/fzheng/go/src/github.com/lyft"
-	cd ${src}/${1}
-	../hacktools/sync-to-onebox-v3.sh ${1}-legacy-fzheng
-}
-function ltail() {
-	ssh "${1}-legacy-fzheng-onebox.dev.lyft.net" "tail -f /var/log/${1}-web/current"
-}
-function lrestart() {
-	ssh "${1}-legacy-fzheng-onebox.dev.lyft.net" "cd /go/src/github.com/lyft/${1} && GOPATH=/go go build  && sudo cp ${1} /usr/local/bin/${1} && pkill -9 ${1}"
-}
-
-
-
 # Start an HTTP server from a directory, optionally specifying the port
 function server() {
 	local port="${1:-8000}";
@@ -48,15 +29,6 @@ function fs() {
 	else
 		du $arg .[^.]* ./*;
 	fi;
-}
-
-# Start an HTTP server from a directory, optionally specifying the port
-function server() {
-	local port="${1:-8000}";
-	sleep 1 && open "http://localhost:${port}/" &
-	# Set the default Content-Type to `text/plain` instead of `application/octet-stream`
-	# And serve everything as UTF-8 (although not technically correct, this doesn’t break anything for binary files)
-	python -c $'import SimpleHTTPServer;\nmap = SimpleHTTPServer.SimpleHTTPRequestHandler.extensions_map;\nmap[""] = "text/plain";\nfor key, value in map.items():\n\tmap[key] = value + ";charset=UTF-8";\nSimpleHTTPServer.test();' "$port";
 }
 
 
@@ -115,13 +87,6 @@ function lcg() {
 }
 
 
-
-# lyft to clone a repository
-function lclone() {
-	clone="git clone git@github.com:lyft/$@"
-	eval $clone
-}
-
 # git merge change from master
 function gitmerge () {
 	old_branch=$(git rev-parse --abbrev-ref HEAD)
@@ -134,24 +99,4 @@ function gitmerge () {
 function gpush() {
 	current_branch=$(git rev-parse --abbrev-ref HEAD)
 	git push origin ${current_branch}
-}
-
-function rom() {
-	rom_command="ssh -t readonlydb.ln 'export LC_ALL=C; rom $@'"
-	eval ${rom_command}
-}
-
-function mongoids() {
-	list_mongo_ids_command="grep mlab_cluster_id ~/go/src/github.com/lyft/runtime/data/mongodb/* | sed -e 's^.*/^^' -e 's/.json://' -e 's/,//' | awk '{print \$3 \" \\t  \" \$1}'"
-	eval ${list_mongo_ids_command}
-}
-
-
-function cdcssh() {
-	pod=${1}
-	lyftkube exec -ti ${pod} -- bash
-}
-function kfkssh() {
-	pod=${1}
-	lyftkube exec -ti ${pod} -- bash
 }

@@ -1,0 +1,337 @@
+#!/usr/bin/env bash
+source /Users/fzheng/dotfiles/bash/color.sh
+
+export VAULT_NAME=vault
+export VAULT_ADDR=https://${VAULT_NAME}.cireops.gcp.internal.confluent.cloud
+alias vlogin='vault login -method=oidc -path=okta'
+alias vlogin_prod='vault login --address https://vault.cireops.gcp.internal.confluent.cloud -method=oidc -path=okta -token-only > ~/.vault-token-prod 2> /dev/null'
+alias vlogin_nonprod='vault login --address https://vaultnonprod.cireops.gcp.internal.confluent.cloud -method=oidc -path=okta -token-only > ~/.vault-token-nonprod 2> /dev/null'
+
+export DOCKER_AWS_ROLE=developer-writer
+
+
+# clear up aws token
+alias aws_clear='granted sso-tokens clear --all'
+# remove okta cache
+oidc_clear() {
+    rm ~/.kube/cache/oidc-login/*
+}
+
+alias dlogin='eval $(assume 037803949979/nonprod-administrator) && export KUBECONFIG=$HOME/.kube/ccloud-config/devel/kubeconfig && export CAAS_ENV=devel && export GOOGLE_PROJECT=cc-devel'
+alias slogin='eval $(assume 237597620434/nonprod-administrator)'
+alias plogin='eval $(assume 050879227952/prod-administrator) && export KUBECONFIG=$HOME/.kube/ccloud-config/prod/kubeconfig && export CAAS_ENV=prod && export GOOGLE_PROJECT=cc-prod'
+alias plogin_reader='eval $(assume 050879227952/reader) && export KUBECONFIG=$HOME/.kube/ccloud-config/prod/kubeconfig && export CAAS_ENV=prod && export GOOGLE_PROJECT=cc-prod'
+alias gcloudlogin='gcloud auth login --update-adc'
+alias alogin='az login'
+
+
+export KFK=pkc-8wmgp5
+export CCKAFKA_LOGIN_USE_MOTHERSHIP_RO=1
+export OKTA_DEVICE_ID=opf9gzy82wf2y5cZA357
+alias klogin='echo ${KFK}; cckafka devel pkc-8wmgp5 login'
+alias kconfig='kubectl-ccloud-config get prod'
+
+
+export REPO=confluentinc
+alias kafka='cd ~/github.com/${REPO}/ce-kafka'
+alias ecr-build='assume 519856050701/developer-reader; /usr/local/bin/aws ecr get-login-password --region us-west-2 --profile 519856050701/developer-reader | /usr/local/bin/docker login --username AWS --password-stdin 519856050701.dkr.ecr.us-west-2.amazonaws.com'
+#alias ecr-build='assume 519856050701; /usr/local/bin/aws ecr get-login-password --region us-west-2 --profile 519856050701 | /usr/local/bin/docker login --username AWS --password-stdin 519856050701.dkr.ecr.us-west-2.amazonaws.com'
+alias ecr-push='assume 037803949979/nonprod-administrator; /usr/local/bin/aws ecr get-login-password --region us-west-2 --profile cc-devel-1/nonprod-administrator | /usr/local/bin/docker login --username AWS --password-stdin 037803949979.dkr.ecr.us-west-2.amazonaws.com'
+#alias ecr-push='assume 037803949979; /usr/local/bin/aws ecr get-login-password --region us-west-2 --profile 037803949979 | /usr/local/bin/docker login --username AWS --password-stdin 037803949979.dkr.ecr.us-west-2.amazonaws.com'
+
+function build-kafka() {
+	if [[ "$#" > 0 ]]
+	then
+		echo "${Green}login vault ... ${Color_Off}"
+		vlogin
+		echo "${Green}login ecr ... ${Color_Off}"
+		ecr_login
+		echo "${Green}login maven.. ${Color_Off}"
+		maven-login -f
+	fi
+
+	echo "start ${Green}make build-docker${Color_Off}"
+	# mk-include/bin/vault-sem-get-secret cloud_apt_script_ro && DOCKER_BUILDKIT=1 DOCKER_BUILD_OPTIONS="--secret id=s3auth,src=/tmp/s3auth.conf" make build-docker
+	make build-docker
+}
+
+
+# run restore script
+alias r='python3 ~/github.com/${REPO}/ce-kafka/core/src/scripts/kafka-restore.py'
+
+# halyard
+alias halprod='halctl --context prod --vault-oidc-role halyard-prod --vault-token $(cat ~/.vault-token) --vault-login-path auth/app/prod/login'
+alias halcpd="halctl --context cpd --vault-login-path auth/app/devel/login --vault-oidc-role halyard-devel --vault-token $(cat ~/.vault-token)"
+
+# devel context
+function kenv() {
+	if [[ "$#" == 0 ]]
+	then
+		echo "env: ${KENV}"
+		echo "kafka: ${KFK}"
+		return
+	fi
+
+	kafka_env=$1
+	kafka_cluster=$2
+	export KFK=$kafka_cluster
+	export KENV=$kafka_env
+	cckafka $KENV $KFK use-context
+	if [[ "X$KENV" == "Xdevel" ]]
+	then
+		export KUBECONFIG="/Users/fzheng/.kube/ccloud-config/devel/kubeconfig"
+	else
+		export KUBECONFIG="/Users/fzheng/.kube/ccloud-config/prod/kubeconfig"
+	fi
+
+	PS1="%n@%m %{$fg[green]%}%~%{$reset_color%}%{$fg[red]%} ${KENV}:${KFK}%{$reset_color%} ~ "
+}
+
+
+
+function ck() {
+	runcmd "cckafka ${KENV} ${KFK} $@"
+}
+
+function runcmd() {
+	cmd=$@
+	echo
+	echo "${Green} # ${cmd}${Color_Off}"
+	eval ${cmd}
+	echo
+}
+
+function balance-internal-topics() {
+    for t in _confluent-quotas _confluent_durability_audit _confluent-link-metadata _confluent-network_id_routes _confluent-metadata-auth _confluent-tier-state _confluent-user_metadata __consumer_offsets _confluent-telemetry-metrics
+    do
+        cckafka ${KENV} ${KFK} rebalance-topic-evenly $t 50
+    done
+}
+
+
+# ec2 env setup
+function ec2ip() {
+	ec2_ip=$1
+	echo "ec2 ip: ${ec2_ip}"
+	export EC2IP=${ec2_ip}
+
+	alias ec2login="ssh -i ~/.ssh/fred-system-test.pem ubuntu@${EC2IP}"
+	alias ec2exec="ssh -i ~/.ssh/fred-system-test.pem ubuntu@${EC2IP}"
+	alias ec2report="ssh -i ~/.ssh/fred-system-test.pem ubuntu@${EC2IP} ./report.sh"
+}
+function ec2sync() {
+	echo "sync code under $(pwd)/core/src to ec2 test env"
+	rsync -rPav -e "ssh -i ~/fred-system-test.pem" $(pwd)/core/src ubuntu@${EC2IP}:/home/ubuntu/ce-kafka/core/
+	
+	echo "sync code under $(pwd)/tests/kafkatest to ec2 test env"
+	rsync -rPav -e "ssh -i ~/fred-system-test.pem" $(pwd)/tests/kafkatest ubuntu@${EC2IP}:/home/ubuntu/ce-kafka/tests
+
+	echo "sync code under $(pwd)/clients/src to ec2 test env"
+	rsync -rPav -e "ssh -i ~/fred-system-test.pem" $(pwd)/clients/src ubuntu@${EC2IP}:/home/ubuntu/ce-kafka/clients/
+}
+
+
+
+function roll_image() {
+	roll_cmd="remote-scheduler-cli devel create roll --cluster ${KFK} --image ce-kafka:${1} --devel --skiprollvalidation"
+	echo "${Green} # ${roll_cmd}${Color_Off}"
+	(sleep 30; echo y) | remote-scheduler-cli devel create roll --cluster ${KFK} --image ce-kafka:${1} --devel --skiprollvalidation
+}
+
+function abort_roll() {
+	remote-scheduler-cli devel update roll --physicalclusterid ${KFK} --abort
+}
+
+
+
+# function for tag image
+function tag_image_and_push() {
+        tag_prefix="037803949979.dkr.ecr.us-west-2.amazonaws.com/confluentinc/ce-kafka:"
+	tag_suffix="fzheng${1}-SNAPSHOT"
+	image_line=$(docker image ls | grep amd64 | head -1)
+	image_id=$(echo ${image_line} | awk '{print $3}')
+	dirty_tag=$(echo ${image_line} | awk '{print $2}')
+	new_tag=$(echo ${dirty_tag} | sed 's/-dirty-fzheng//')
+	new_tag=${tag_prefix}${new_tag}${tag_suffix}
+	tag_cmd="docker tag ${image_id} ${new_tag}"
+	runcmd ${tag_cmd}
+	# echo "run cmd: ${tag_cmd}"
+	# eval "${tag_cmd}"
+	
+	push_cmd="docker push ${new_tag}"
+	# echo "run cmd: ${push_cmd}"
+	# eval "${push_cmd}"
+	runcmd ${push_cmd}
+}
+
+
+# confluent to clone a repository
+function lclone() {
+        clone="git clone git@github.com:confluentinc/$@"
+        eval $clone
+}
+
+
+
+# kubernetes
+# alias kn='kubectl -n ${KFK}'
+func kn() {
+	runcmd "kubectl -n ${KFK} $@"
+}
+
+function kssh() {
+	pod=${1}
+	if [[ "${pod}" == "restore" ]]
+	then
+		pod=$(kn get pods | grep kafka-restore | awk '{print $1}') 
+	fi
+	echo "ssh to pod: ${pod}"
+	kn exec ${pod} -ti -- bash
+}
+alias kn_exec='kn exec kafka-0 --'
+alias ktopics='kn_exec /opt/confluent/bin/kafka-topics --bootstrap-server localhost:9071 --list'
+alias ktopics_describe='kn_exec /opt/confluent/bin/kafka-topics --bootstrap-server localhost:9071 --describe --topic'
+alias ktopics_delete='kn_exec /opt/confluent/bin/kafka-topics --bootstrap-server localhost:9071 --delete --topic'
+alias kconfigs='kn_exec /opt/confluent/bin/kafka-configs.sh --bootstrap-server=localhost:9071'
+function kRentition() {
+	topic=${1}
+	retention=${2}
+	kn_exec /opt/confluent/bin/kafka-configs.sh --bootstrap-server=localhost:9071 --entity-type topics --entity-name ${topic} --alter --add-config retention.ms=${retention}
+}
+
+function kls() {
+	dir=${1}
+	if [[ "X${dir}" == "X" ]]
+	then
+		kn_exec ls /mnt/data/data0/logs/
+	else
+		kn_exec ls -lh /mnt/data/data0/logs/${dir}
+	fi
+}
+
+function kdump() {
+	set -x
+	topic_partition=${1}
+	file=${2}
+	# if [[ "X${file}" == "X" ]]
+	# then
+		file="/mnt/data/data0/logs/${topic_partition}/${file}"
+		kn_exec /opt/confluent/bin/kafka-dump-log.sh --files ${file}
+		# kn_exec /opt/confluent/bin/kafka-run-class kafka.tier.tools.DumpTierPartitionState /mnt/data/data0/logs/${topic_partition}
+	# else
+	# 	file="/mnt/data/data0/logs/${topic_partition}/00000000000000000000.tierstate.adler"
+	# 	kn_exec /opt/confluent/bin/kafka-dump-log.sh --files ${file}
+	# fi
+	set +x
+}
+
+function sonic_roll() {
+  interval=$1
+
+#  echo "Are you sure to roll the cluster $KFK, and sleep $interval seconds between pods, type 'Y' to confirm:"
+#  read input
+#  if [[ $input == "Y" ]]; then
+#     echo "Input is 'Y', moving on to roll the cluster"
+#  else
+#     echo "Input is not 'Y', skip the roll"
+#     return
+#  fi
+
+  total_pods=6
+  counter=0
+  for i in 0 3 1 4 2 5; do
+    echo 
+    echo "--- shuddtting down kafka-$i ----"
+	until kubectl -n ${KFK} delete pod kafka-$i
+	do 
+		echo
+		echo "  *** check URP, and sleep 1s, then try again *** "
+		cckafka devel ${KFK} topics under-replicated
+		sleep 1
+	done
+    # echo "run kn delete pod kafka-$i"
+
+    counter=$((counter + 1))
+
+    if [[ $counter -eq $total_pods ]]; then
+	echo "done"
+        return
+    fi
+ 
+    echo " sleeping for $interval seconds ..."
+    sleep $interval
+  done
+}
+
+function sonic_promote() {
+  interval=$1
+  interval=$((interval - 180))
+  total_pods=6
+  counter=0
+  for i in 0 3 1 4 2 5; do
+    echo
+    echo "--- demote kafka-$i ----"
+    ck leadership demote $i "sonic-test"
+    echo "  --- sleep 180 seconds ---"
+    sleep 180
+    echo "  --- promote kafka-$i ---"
+    ck leadership promote $i "sonic-test"
+
+    counter=$((counter + 1))
+
+    if [[ $counter -eq $total_pods ]]; then
+        echo "done"
+        return
+    fi
+
+    echo " sleeping for $interval seconds ..."
+    sleep $interval
+  done
+}
+
+
+
+
+# mothership db access
+devel_db() {
+  # Fetch the read only database password for the given environment (devel, stag, prod).
+  export ENVIRONMENT=devel
+ 
+  # The PGPASSWORD environment variable can be set for us in scripts
+  export PGPASSWORD=$(vault kv get -field=ro-password v1/devel/kv/mothership-db-credentials)
+ 
+  # Set the PGUSER environment variable by retrieve it from vault
+  export PGUSER=$(vault kv get -field=ro-user v1/${ENVIRONMENT}/kv/mothership-db-credentials)
+ 
+  # Create a ssh tunnel to the read only mothership database
+  cctunnel.sh -r us-west-2 -p 6667 -t db-ro -e ${ENVIRONMENT}
+
+  # Output: connect to localhost:6667 to access the ENVIRONMENT mothership Read-Only DB
+ 
+  # Connect to the read only mothership database
+  psql -h localhost -p 6667 -U ${PGUSER} -d mothership
+}
+
+prod_db() {
+  # Fetch the read only database password for the given environment (devel, stag, prod).
+  export ENVIRONMENT=prod
+ 
+  # The PGPASSWORD environment variable can be set for us in scripts
+  # export PGPASSWORD=$(vault kv get -field=ro-password v1/${ENVIRONMENT}/kv/mothership-db-credentials)
+ 
+  # Set the PGUSER environment variable by retrieve it from vault
+  export PGUSER=$(vault kv get -field=ro-user v1/${ENVIRONMENT}/kv/mothership-db-credentials)
+ 
+  # Create a ssh tunnel to the read only mothership database
+  cctunnel -r us-west-2 -p 6667 -t db-ro -e ${ENVIRONMENT}
+
+  # Output: connect to localhost:8432 to access the ENVIRONMENT mothership Read-Only DB
+ 
+  # Connect to the read only mothership database
+  psql -h localhost -p 6667 -U ${PGUSER} -d mothership
+}
+
+
+CONFLUENINC="/Users/fzheng/github.com/confluentinc"
+
+export PATH=:${CONFLUENINC}/cc-scheduler-service/:${CONFLUENINC}/cc-dotfiles/bin/cloud-ga/:${CONFLUENINC}/cc-dotfiles/bin/kafka-ga/:${CONFLUENINC}/cc-dotfiles/bin/cloud-alpha/:${CONFLUENINC}/halyard/bin/:${PATH}:${CONFLUENINC}/cc-dotfiles/include/cloud-beta
